@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.2.0
+
+- New `memoryUsage` option: inject the source of heap readings. `checkMemory()`
+  and `snapshot()` read from it instead of calling `process.memoryUsage()` directly,
+  so leak detection is deterministic in tests and the `Insights` core runs on
+  runtimes without `process`. Exported the `MemoryUsage` type.
+- `prepare` script builds `dist/`, so the package can be installed straight from git.
+
 ## 0.1.0
 
 Initial release.

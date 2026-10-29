@@ -1,7 +1,7 @@
 {
   "name": "node-observe",
-  "version": "0.1.0",
-  "description": "Lightweight backend observability for Node.js — API latency, MongoDB & Redis query timing, memory-leak detection, and Slack alerts. Datadog-lite for small teams, with no agent and minimal dependencies.",
+  "version": "0.2.0",
+  "description": "Lightweight backend observability for Node.js \u2014 API latency, MongoDB & Redis query timing, memory-leak detection, and Slack alerts. Datadog-lite for small teams, with no agent and minimal dependencies.",
   "keywords": [
     "observability",
     "monitoring",
@@ -54,7 +54,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

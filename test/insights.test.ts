@@ -59,6 +59,31 @@ describe("Insights recording + alerting", () => {
     }
     expect(alerts.some((a) => a.type === "memory-leak")).toBe(true);
   });
+
+  it("reads memory from an injected memoryUsage source", () => {
+    const alerts: Alert[] = [];
+    const MB = 1024 * 1024;
+    let heap = 100;
+    let clock = 0;
+    vi.spyOn(Date, "now").mockImplementation(() => clock);
+    try {
+      const i = new Insights({
+        logger: silent,
+        thresholds: { heapGrowthMbPerMin: 5, heapUsedMb: 150 },
+        memoryUsage: () => ({ heapUsed: heap * MB, heapTotal: 300 * MB, rss: 400 * MB, external: 0 }),
+        onAlert: (a) => alerts.push(a),
+      });
+      for (let k = 0; k < 6; k++) {
+        clock = k * 60_000;
+        heap = 100 + k * 20;
+        i.checkMemory();
+      }
+      expect(alerts.map((a) => a.type)).toEqual(expect.arrayContaining(["memory-leak", "memory-high"]));
+      expect(i.snapshot().memory).toMatchObject({ heapUsedMb: 200, heapTotalMb: 300, rssMb: 400, growthMbPerMin: 20 });
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
 });
 
 describe("Insights instrumentation", () => {

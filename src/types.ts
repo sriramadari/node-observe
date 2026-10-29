@@ -73,6 +73,20 @@ export interface InsightsOptions {
    * so routes group together. Default: true. Set false to keep raw paths.
    */
   normalizePaths?: boolean;
+  /**
+   * Where memory readings come from. Default: `process.memoryUsage`. Inject one
+   * to test leak detection deterministically, or to feed readings from a
+   * runtime without `process` (Deno, Bun, workers, browsers).
+   */
+  memoryUsage?: () => MemoryUsage;
+}
+
+/** The subset of `process.memoryUsage()` that node-observe reads (bytes). */
+export interface MemoryUsage {
+  heapUsed: number;
+  heapTotal: number;
+  rss: number;
+  external: number;
 }
 
 /** Full point-in-time view of everything node-observe is tracking. */

@@ -1,4 +1,4 @@
-import type { MemorySnapshot } from "./types";
+import type { MemorySnapshot, MemoryUsage } from "./types";
 
 interface Sample {
   t: number; // ms timestamp
@@ -20,7 +20,7 @@ export class MemoryMonitor {
   }
 
   /** Add the current memory reading. `now`/`mem` are injectable for testing. */
-  sample(now: number, mem: NodeJS.MemoryUsage): void {
+  sample(now: number, mem: MemoryUsage): void {
     this.samples.push({ t: now, heapUsed: mem.heapUsed });
     if (this.samples.length > this.window) this.samples.shift();
   }
@@ -48,7 +48,7 @@ export class MemoryMonitor {
     return Math.round(slope * 100) / 100;
   }
 
-  snapshot(mem: NodeJS.MemoryUsage): MemorySnapshot {
+  snapshot(mem: MemoryUsage): MemorySnapshot {
     const mb = (b: number) => Math.round((b / (1024 * 1024)) * 100) / 100;
     return {
       heapUsedMb: mb(mem.heapUsed),

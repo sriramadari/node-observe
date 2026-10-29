@@ -5,7 +5,7 @@ import { normalizePath } from "./util";
 import { instrumentExpress } from "./express";
 import { instrumentMongoose } from "./mongo";
 import { instrumentRedis } from "./redis";
-import type { Alert, AlertType, InsightsOptions, InsightsSnapshot, Logger } from "./types";
+import type { Alert, AlertType, InsightsOptions, InsightsSnapshot, Logger, MemoryUsage } from "./types";
 
 const consoleLogger: Logger = {
   info: (m) => console.log(m),
@@ -45,6 +45,7 @@ export class Insights {
   readonly redis: MetricsRegistry;
   private readonly counters: MetricsRegistry;
   private readonly memory: MemoryMonitor;
+  private readonly readMemory: () => MemoryUsage;
 
   readonly serviceName: string;
   readonly thresholds: Required<NonNullable<InsightsOptions["thresholds"]>>;
@@ -62,6 +63,7 @@ export class Insights {
     this.logger = options.logger ?? consoleLogger;
     this.cooldownMs = options.alertCooldownMs ?? 60_000;
     this.memory = new MemoryMonitor();
+    this.readMemory = options.memoryUsage ?? (() => process.memoryUsage());
     const cap = options.sampleSize ?? 1024;
     this.http = new MetricsRegistry(cap);
     this.mongo = new MetricsRegistry(cap);
@@ -135,9 +137,10 @@ export class Insights {
 
   /**
    * Take one memory reading and evaluate the leak/high-heap thresholds.
-   * `now`/`mem` are injectable for testing; both default to live process values.
+   * `now`/`mem` are injectable for testing; they default to the clock and the
+   * `memoryUsage` source (live process values unless overridden).
    */
-  checkMemory(now: number = Date.now(), mem: NodeJS.MemoryUsage = process.memoryUsage()): void {
+  checkMemory(now: number = Date.now(), mem: MemoryUsage = this.readMemory()): void {
     this.memory.sample(now, mem);
     const snap = this.memory.snapshot(mem);
 
@@ -167,7 +170,7 @@ export class Insights {
   // ---- output ---------------------------------------------------------------
 
   snapshot(): InsightsSnapshot {
-    const mem = process.memoryUsage();
+    const mem = this.readMemory();
     return {
       service: this.serviceName,
       uptimeSec: Math.round((Date.now() - this.startedAt) / 1000),

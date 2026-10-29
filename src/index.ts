@@ -17,4 +17,5 @@ export type {
   InsightsThresholds,
   Logger,
   MemorySnapshot,
+  MemoryUsage,
 } from "./types";

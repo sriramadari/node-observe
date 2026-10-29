@@ -111,6 +111,7 @@ A Slack alert looks like:
 | `memorySampleIntervalMs` | `15000` | Memory sampling cadence. |
 | `normalizePaths` | `true` | Collapse `/users/123` → `/users/:id`. |
 | `onAlert` | — | Custom alert sink. |
+| `memoryUsage` | `process.memoryUsage` | Source of heap readings. Inject one for deterministic tests or runtimes without `process`. |
 | `logger` | `console` | Internal error logger. |
 
 ---
