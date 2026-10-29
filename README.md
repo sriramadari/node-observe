@@ -19,6 +19,42 @@ npm install node-observe
 
 ---
 
+## What it does and how it helps
+
+**The problem.** Small teams often run without an APM, because an agent and a monthly bill feel like overkill for one or two services. Then the first sign of a slow endpoint, a missing Mongo index or a memory leak is a user complaint or an out-of-memory restart.
+
+**What it does**
+
+- **API latency.** Express middleware records p50, p95 and p99 per route, 5xx error counts and status-class counters. Numeric IDs, ObjectIds and UUIDs in paths collapse to :id, so /users/42 and /users/43 share one row.
+- **MongoDB timing.** A global Mongoose plugin times every query, aggregate and save, labelled Model.op.
+- **Redis timing.** Wraps an ioredis client and times every command by name.
+- **Leak detection.** Samples the heap every 15 seconds and fits a line through the last 30 samples. A sustained slope in MB per minute raises the alert; one high reading after a busy GC cycle doesn't.
+- **Alerts.** Threshold breaches go to a Slack webhook or your onAlert handler, with a per-key cooldown (60 seconds by default) so one slow route can't flood the channel.
+- **/insights.** insights.handler() serves everything above as one JSON snapshot.
+
+**How it helps**
+
+| Before | With `node-observe` |
+|---|---|
+| "The app feels slow" with nothing to point at. | The route, its p95, and the query inside it that crossed the threshold. |
+| Averages hide the slow tail that users actually notice. | Percentiles per route, kept in fixed-size buffers. |
+| A leak shows up as an out-of-memory restart at 3am. | A Slack message about steady heap growth, hours earlier. |
+| An APM agent and per-host pricing for one service. | One package, no agent, nothing to run alongside it. |
+
+**Use it when**
+
+- A Node service on Express, Mongoose and ioredis with no APM yet.
+- You want alerts on slow routes, slow queries and leaks in a few lines of setup.
+
+**Not the right tool for**
+
+- Distributed tracing across many services.
+- Long-term metric storage; scrape /insights into a store you already have.
+
+**How it works.** Everything lives in memory inside your process. Each metric keeps a 1,024-sample ring buffer, so memory stays flat no matter how much traffic you get, and percentiles come from that recent window. express, mongoose and ioredis are duck-typed rather than imported, so the package depends on none of them.
+
+---
+
 ## Quick start
 
 ```ts
